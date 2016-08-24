@@ -5,9 +5,7 @@ date: "August 21, 2016"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 ## Introduction
 
@@ -24,8 +22,8 @@ Dataset: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdat
 The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset
 
 ### loading the dataset
-```{r }
 
+```r
 # load dplyr package
 library(dplyr)
 
@@ -40,38 +38,50 @@ df <- mutate(df,date=as.Date(df$date))
 
 ## take subset of initial dataset by removing NA values
 df1 <- subset(df,!is.na(df$steps)==TRUE)
-
 ```
 
 ### Calculating the total number of steps taken per day
-```{r CodeChunk1,echo=TRUE}
 
+```r
 ## Group by each day
 ## Calculate the sum of steps taken each day ignoring NA values
 df1 <- group_by(df1,date)%>%
        summarise(step_sum=sum(steps,na.rm=TRUE))
-
 ```
 
 ### Creating Histogram of total number of steps taken each day
-```{r CodeChunk2,echo=TRUE}
 
+```r
 p<-ggplot(data=df1,aes(date))
 p+geom_histogram(aes(weight=step_sum),binwidth = 0.5,col="blue")+xlab("Date")+ylab("Total Number of Steps")
 ```
 
+<img src="PA1_template_files/figure-html/CodeChunk2-1.png" width="672" />
+
 ### The Mean and Median steps taken per day
-```{r codechunk3,echo=TRUE}
+
+```r
 ## Calculate the mean steps
 mean(df1$step_sum,na.rm = TRUE)
+```
 
+```
+## [1] 10766.19
+```
+
+```r
 ## Median Steps
 median(df1$step_sum,na.rm = TRUE)
 ```
 
+```
+## [1] 10765
+```
+
 
 ### Average daily activity pattern
-```{r codecchunk4,echo=TRUE}
+
+```r
 ## create new dataframe for df excluding NA values
 df2 <- subset(df,!is.na(df$steps)==TRUE)
 
@@ -83,7 +93,11 @@ df2 <- group_by(df2,interval)%>%
 ## Draw time series plot fove average steps pver interval
 p <- ggplot(data=df2,aes(x=interval,y=steps_mean))
 p+geom_line(col="blue")+xlab("5 minute interval")+ylab("Average steps taken across all days")
+```
 
+<img src="PA1_template_files/figure-html/codecchunk4-1.png" width="672" />
+
+```r
 ## Find the interval with maximum number of steps
 xt <- filter(df2,steps_mean==max(df2$steps_mean))
 
@@ -91,7 +105,13 @@ xt <- filter(df2,steps_mean==max(df2$steps_mean))
 kable(xt)
 ```
 
-### The 5 min interval which contains maximum number of steps is `r xt$interval`
+
+
+ interval   steps_mean
+---------  -----------
+      835     206.1698
+
+### The 5 min interval which contains maximum number of steps is 835
 
 ## Imputing missing values:
 ### We will impute the missing values by using the KNN: K nearest neighbour algorithm, for this we would have to install the impute package.
@@ -101,14 +121,15 @@ source("https://bioconductor.org/biocLite.R")
 
 biocLite("impute")
 
-```{r codechunk5,echo=TRUE,results='hide'}
 
+```r
 ## Calculate total number of missing NA values
 sum(is.na(df$steps))
 ```
-### Total number of missing values are: `r sum(is.na(df$steps))`
+### Total number of missing values are: 2304
 
-```{r codechunk6,echo=TRUE,results='hide'}
+
+```r
 ## load impute package
 library(impute)
 
@@ -132,12 +153,11 @@ dfImputed <- cbind(df,dfImputed)
 ## remove steps and interval from dfImputed data frame
 ## We get dataframe with imputed values- data set with missing values filled in
 dfImputed <- dfImputed[,c(-1,-3)]
-
 ```
 
 ### Histogram on the dataset with missing values filled in based on KNN
-```{r codechunk7, echo=TRUE}
 
+```r
 ## group by date
 ## find the sum of the steps
 df3 <- group_by(dfImputed,date)%>%
@@ -146,27 +166,52 @@ df3 <- group_by(dfImputed,date)%>%
 ## draw histograme on the imputed dataframe
 p<-ggplot(data=df3,aes(date))
 p+geom_histogram(aes(weight=step_sum),binwidth = 0.5,col="blue")+xlab("Date")+ylab("Total Number of Steps")
+```
 
+<img src="PA1_template_files/figure-html/codechunk7-1.png" width="672" />
+
+```r
 # mean on the original dataset
 mean(df1$step_sum,na.rm = TRUE)
+```
 
+```
+## [1] 10766.19
+```
+
+```r
 # mean on the imputed dataset
 mean(df3$step_sum)
+```
 
+```
+## [1] 10131.02
+```
+
+```r
 # median on the original dataset 
 median(df1$step_sum,na.rm = TRUE)
+```
 
+```
+## [1] 10765
+```
+
+```r
 # median on the Imputed dataset 
 median(df3$step_sum)
+```
 
+```
+## [1] 10395
 ```
 
 ### As can be seen from the above values both the mean and median values of imputed data set have decreased slightly
 
 ## Difference in activity pattern between Weekdays and Weekend:
 
-```{r codechunk8,echo=TRUE}
 
+```r
 ## create new data frame from dfimputed containing IsWeekDay column
 df4 <- mutate(dfImputed,IsWeekDay= weekdays(date))
 
@@ -200,8 +245,9 @@ df4 <- group_by(df4,interval_imputed,IsWeekDay)%>%
 ## make time series plot based on weeken or weekday
 p <- ggplot(data=df4,aes(x=interval_imputed,y=step_mean))
 p+geom_line(col="blue")+facet_grid(IsWeekDay~.)+xlab("5 minute interval")+ylab("Average steps taken across all days")
-
 ```
+
+<img src="PA1_template_files/figure-html/codechunk8-1.png" width="672" />
 
 
 
